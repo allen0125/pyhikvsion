@@ -1,9 +1,12 @@
 import config
 import hkws.soadapter as sdk
 import os
-import getopt, sys
+import getopt
+import sys
 import time
 import hkws.callback as cb
+from ctypes import byref
+
 
 # 启动函数  python3 main.py -c xxx/xxx
 
@@ -28,7 +31,7 @@ print(adapter.so_list)
 # init hkws linux sdk
 adapter.set_sdk_config(2, cnfPath)
 initRes = adapter.init_sdk()
-if initRes == False:
+if not initRes:
     os._exit(0)
 
 
@@ -39,29 +42,36 @@ if userId < 0:
 
 print("Login successful,the userId is ", userId)
 
+get_config = adapter.get_dvr_config(userId)
+print("获取配置文件  ", get_config)
+set_dvr_config = adapter.set_dvr_config(userId)
+print("设置设备信息结果为 ", set_dvr_config)
 
-# set_dvr_config = adapter.set_dvr_config(userId)
-# print("设置设备信息结果为 ", set_dvr_config)
-# data = adapter.setup_alarm_chan_v31(cb.face_alarm_call_back, userId)
-# print("设置回调函数结果", data)
-# # 布防
-# alarm_result = adapter.setup_alarm_chan_v41(userId)
-# print("设置人脸v41布防结果", alarm_result)
-
-
-
-lRealPlayHandle = adapter.start_preview(None, userId)
-if lRealPlayHandle < 0:
-    os._exit(2)
-print("Start preview successful,the lRealPlayHandle is ", lRealPlayHandle)
-callback = adapter.callback_real_data(lRealPlayHandle, cb.g_real_data_call_back, userId)
-print('callback_real_data result is ', callback)
+data = adapter.setup_alarm_chan_v31(cb.face_alarm_call_back, None)
+print("设置回调函数结果", data)
+# 布防
+alarm_result = adapter.setup_alarm_chan_v41(userId)
+print("设置人脸v41布防结果", alarm_result)
 
 
-time.sleep(2)
 
+# lRealPlayHandle = adapter.start_preview(None, userId)
+# if lRealPlayHandle < 0:
+#     os._exit(2)
+# print("Start preview successful,the lRealPlayHandle is ", lRealPlayHandle)
 
-# adapter.close_alarm(alarm_result)
+# callback = adapter.callback_real_data(lRealPlayHandle, cb.g_standard_data_call_back, userId)
+# print('callback_real_data result is ', callback)
+
+# # callback_standard = adapter.callback_standard_data(
+# #     lRealPlayHandle, cb.g_standard_data_call_back, userId)
+# # print('callback_standard_data result is', callback_standard)
+
+time.sleep(200)
+
 # adapter.stop_preview(lRealPlayHandle)
+
+adapter.close_alarm(alarm_result)
+
 adapter.logout(userId)
 adapter.sdk_clean()

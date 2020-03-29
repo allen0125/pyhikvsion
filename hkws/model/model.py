@@ -1,4 +1,5 @@
 from ctypes import *
+from hkws.hv_sdk_define import *
 
 
 # 报警设备信息结构体
@@ -101,6 +102,35 @@ class NET_VCA_HUMAN_FEATURE(Structure):
     ]
 
 
+class NET_DVR_TIME_EX(Structure):
+    _fields_ = [
+        ("wYear", WORD),
+        ("byMonth", BYTE),
+        ("byDay", BYTE),
+        ("byHour", BYTE),
+        ("byMinute", BYTE),
+        ("bySecond", BYTE),
+        ("byRes", BYTE),
+    ]
+
+
+class NET_VCA_FACESNAP_ADDINFO(Structure):
+    _fields_ = [
+        ("struFacePicRect", NET_VCA_RECT),
+        ("iSwingAngle", c_int),
+        ("iTiltAngle", c_int),
+        ("dwPupilDistance", DWORD),
+        ("byBlockingState", BYTE),
+        ("byFaceSnapThermometryEnabled", BYTE),
+        ("byIsAbnomalTemperature", BYTE),
+        ("byThermometryUnit", BYTE),
+        ("struEnterTime", NET_DVR_TIME_EX),
+        ("struExitTime", NET_DVR_TIME_EX),
+        ("fFaceTemperature", c_float),
+        ("fAlarmTemperature", c_float),
+        ("byRes", BYTE * 472),
+    ]
+
 # 人脸抓拍结果结构体。
 class NET_VCA_FACESNAP_RESULT(Structure):
     _fields_ = [
@@ -128,13 +158,15 @@ class NET_VCA_FACESNAP_RESULT(Structure):
         ("byUIDLen", c_byte),
         ("byLivenessDetectionStatus", c_byte),
         ("byAddInfo", c_byte),
+        ("pUIDBuffer", POINTER(c_byte)),
+        ("pAddInfoBuffer", POINTER(NET_VCA_FACESNAP_ADDINFO)),
         ("byTimeDiffFlag", c_byte),
         ("cTimeDifferenceH", c_char),
         ("cTimeDifferenceM", c_char),
 
         ("byBrokenNetHttp", c_byte),
-        ("pBuffer1", c_void_p),
-        ("pBuffer2", c_void_p)
+        ("pBuffer1", POINTER(c_ubyte)),
+        ("pBuffer2", POINTER(c_ubyte))
     ]
 
 
@@ -167,7 +199,7 @@ class NET_VCA_POINT(Structure):
 class NET_VCA_POLYGON(Structure):
     _fields_ = [
         ("dwPointNum", c_uint32),
-        ("struPos", NET_VCA_POINT*4)
+        ("struPos", NET_VCA_POINT*10)
     ]
 
 # 人脸抓拍规则参数（单条）结构体
@@ -194,7 +226,7 @@ class NET_VCA_FACESNAPCFG(Structure):
         ("byMatchType", c_byte),
         ("byMatchThreshold", c_byte),
         ("struPictureParam", NET_DVR_JPEGPARA),
-        ("struRule", NET_VCA_SINGLE_FACESNAPCFG * 1),
+        ("struRule", NET_VCA_SINGLE_FACESNAPCFG * 8),
         ("wFaceExposureMinDuration", c_uint16),
         ("byFaceExposureMode", c_byte),
         ("byBackgroundPic", c_byte),
@@ -203,3 +235,4 @@ class NET_VCA_FACESNAPCFG(Structure):
         ("dwFaceFilteringTime", c_uint32),
         ("byRes2", c_byte * 84)
     ]
+

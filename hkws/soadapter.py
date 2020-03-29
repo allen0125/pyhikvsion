@@ -7,7 +7,7 @@ import hkws.model.model as model_1
 
 from hkws.callback import hikFunc
 
-from hkws.callback import g_real_data_call_back, face_alarm_call_back
+from hkws.callback import g_real_data_call_back, face_alarm_call_back, g_standard_data_call_back
 
 
 class HKAdapter:
@@ -109,18 +109,19 @@ class HKAdapter:
 
         return user_id
 
-    def start_preview(self, cbFunc: hikFunc, userId=0):
+    def start_preview(self, cbFunc: g_standard_data_call_back, userId=0):
         req = preview.NET_DVR_PREVIEWINFO()
         req.hPlayWnd = None
         req.lChannel = 1  # 预览通道号
         req.dwStreamType = 0  # 码流类型：0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
         req.dwLinkMode = 0  # 连接方式：0-TCP方式，1-UDP方式，2-多播方式，3-RTP方式，4-RTP/RTSP，5-RTP/HTTP,6-HRUDP（可靠传输）
-        req.bBlocked = 1  # 0-非阻塞 1-阻塞
+        req.bBlocked = 0  # 0-非阻塞 1-阻塞
+        req.byProtoType = 1
         struPlayInfo = byref(req)
         # 这个回调函数不适合长时间占用
         # fRealDataCallBack_V30 = preview.REALDATACALLBACK
 
-        lRealPlayHandle = self.call_cpp("NET_DVR_RealPlay_V40", userId, struPlayInfo, cbFunc, None)
+        lRealPlayHandle = self.call_cpp("NET_DVR_RealPlay_V40", userId, struPlayInfo, None, None)
         print("start_preview lrealPlayHandle is ", lRealPlayHandle)
 
         if lRealPlayHandle < 0:
@@ -146,31 +147,41 @@ class HKAdapter:
     def stop_preview(self, lRealPlayHandle):
         self.call_cpp("NET_DVR_StopRealPlay", lRealPlayHandle)
 
-    # def callback_real_data(self, lRealPlayHandle: c_long, cbFunc: g_real_data_call_back, dwUser: c_ulong):
-    #     return self.call_cpp("NET_DVR_SetRealDataCallBack", lRealPlayHandle, cbFunc, dwUser)
     def callback_real_data(self, lRealPlayHandle: c_long, cbFunc: g_real_data_call_back, dwUser: c_ulong):
-        return self.call_cpp("NET_DVR_SetStandardDataCallBack", lRealPlayHandle, cbFunc, dwUser)
-
-
-    def setup_alarm_chan_v31(self, cbFunc: face_alarm_call_back, user_id=0):
-        result = self.call_cpp("NET_DVR_SetDVRMessageCallBack_V31", cbFunc, user_id)
-        if result == -1:
-            error_info = self.call_cpp("NET_DVR_GetLastError")
-            logging.error("NET_DVR_SetupAlarmChan_V41" + str(error_info))
+        result = self.call_cpp("NET_DVR_SetRealDataCallBack", lRealPlayHandle, cbFunc, dwUser)
+        error_info = self.call_cpp("NET_DVR_GetLastError")
+        print("回调视频流错误信息为： ", error_info)
         return result
-    
+
+    def callback_standard_data(self, lRealPlayHandle: c_long, cbFunc: g_standard_data_call_back, dwUser: c_ulong):
+        result = self.call_cpp("NET_DVR_SetStandardDataCallBack", lRealPlayHandle, cbFunc, dwUser)
+        error_info = self.call_cpp("NET_DVR_GetLastError")
+        print("回调视频流错误信息为： ", error_info)
+        return result
+
+    def setup_alarm_chan_v31(self, cbFunc: face_alarm_call_back, user_id):
+        result = self.call_cpp("NET_DVR_SetDVRMessageCallBack_V31", cbFunc, user_id)
+        # if result == -1:
+        error_info = self.call_cpp("NET_DVR_GetLastError")
+        logging.error("NET_DVR_SetupAlarmChan_V31 : " + str(error_info))
+        return result
+
     def setup_alarm_chan_v41(self, user_id=0):
         structure_l = model_1.NET_DVR_SETUPALARM_PARAM()
+        structure_l.dwSize = sizeof(structure_l)
         structure_l.byFaceAlarmDetection = 0
         structure_l_ref = byref(structure_l)
         result = self.call_cpp("NET_DVR_SetupAlarmChan_V41", user_id, structure_l_ref)
-        if result == -1:
-            error_info = self.call_cpp("NET_DVR_GetLastError")
-            logging.error("NET_DVR_SetupAlarmChan_V41" + str(error_info))
+        # if result == -1:
+        error_info = self.call_cpp("NET_DVR_GetLastError")
+        logging.error("NET_DVR_SetupAlarmChan_V41 : " + str(error_info))
         return result
 
     def close_alarm(self, alarm_result):
-        return self.call_cpp("NET_DVR_CloseAlarmChan_V30", alarm_result)
+        result = self.call_cpp("NET_DVR_CloseAlarmChan_V30", alarm_result)
+        error_info = self.call_cpp("NET_DVR_GetLastError")
+        logging.error("NET_DVR_CloseAlarmChan_V30 : " + str(error_info))
+        return result
 
     # 设置设备的配置信息
     def set_dvr_config(self, user_id=0):
@@ -206,6 +217,7 @@ class HKAdapter:
         point_4 = model_1.NET_VCA_POINT()
         point_4.fX = 0.99
         point_4.fY = 0.005
+        point = model_1.NET_VCA_POINT()
 
         polygon = model_1.NET_VCA_POLYGON()
         polygon.dwPointNum = 4
@@ -213,6 +225,13 @@ class HKAdapter:
         polygon.struPos[1] = point_2
         polygon.struPos[2] = point_3
         polygon.struPos[3] = point_4
+        polygon.struPos[4] = point
+        polygon.struPos[5] = point
+        polygon.struPos[6] = point
+        polygon.struPos[7] = point
+        polygon.struPos[8] = point
+        polygon.struPos[9] = point
+        
 
 
         single_face = model_1.NET_VCA_SINGLE_FACESNAPCFG()
@@ -226,11 +245,11 @@ class HKAdapter:
         lpInBuffer = model_1.NET_VCA_FACESNAPCFG()
         size = sizeof(lpInBuffer)
         lpInBuffer.dwSize = size
-        lpInBuffer.bySnapTime = 1
-        lpInBuffer.bySnapInterval = 5
-        lpInBuffer.bySnapThreshold = 70
+        lpInBuffer.bySnapTime = 3
+        lpInBuffer.bySnapInterval = 2
+        lpInBuffer.bySnapThreshold = 50
         lpInBuffer.byGenerateRate = 5
-        lpInBuffer.bySensitive = 4
+        lpInBuffer.bySensitive = 5
         lpInBuffer.byReferenceBright = 40
         lpInBuffer.byMatchType = 1
         lpInBuffer.byMatchThreshold = 50
@@ -255,3 +274,15 @@ class HKAdapter:
             logging.error("设置设备的配置信息错误为：" + str(error_info))
 
         return set_dvr_result
+
+    def get_dvr_config(self, user_id=0):
+        lpInBuffer = model_1.NET_VCA_FACESNAPCFG()
+        size = sizeof(lpInBuffer)
+        lpInBuffer_ref = byref(lpInBuffer)
+        lpBytesReturned = POINTER(c_uint)()
+        print("testtesttesttest", size)
+        get_dvr_result = self.call_cpp("NET_DVR_GetDVRConfig", user_id, 5001, 1, lpInBuffer_ref, size, lpBytesReturned)
+        if not get_dvr_result:
+            error_info = self.call_cpp("NET_DVR_GetLastError")
+            logging.error("获取设备的配置信息错误为：" + str(error_info))
+        return get_dvr_result
