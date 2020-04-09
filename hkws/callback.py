@@ -29,11 +29,14 @@ def g_real_data_call_back(lRealPlayHandle: c_long,
 
 @CFUNCTYPE(None, c_long, c_ulong, POINTER(c_byte), c_ulong, c_ulong)
 def g_standard_data_call_back(lRealPlayHandle: c_long,
-                          dwDataType: 4,
-                          pBuffer: POINTER(c_byte),
+                          dwDataType: c_ulong,
+                          pBuffer: POINTER(c_ubyte),
                           dwBufSize: c_ulong,
                           dwUser: c_ulong):
     print(' bbbbbbbbbbb callback pBufSize is ', lRealPlayHandle, pBuffer, dwBufSize)
+    if dwDataType == 2:
+        a = string_at(pBuffer, dwBufSize)
+        print(a.decode())
     print(dwDataType)
     l_lst[0] = pBuffer
 

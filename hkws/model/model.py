@@ -236,3 +236,46 @@ class NET_VCA_FACESNAPCFG(Structure):
         ("byRes2", c_byte * 84)
     ]
 
+
+class NET_DVR_XML_CONFIG_INPUT(Structure):
+    """
+    透传接口输入参数结构体。
+    """
+    _fields_ = [
+        ("dwSize", DWORD),
+        ("lpRequestUrl", c_void_p),
+        ("dwRequestUrlLen", DWORD),
+        ("lpInBuffer", c_void_p),
+        ("dwInBufferSize", DWORD),
+        ("dwRecvTimeOut", DWORD),
+        ("byForceEncrpt", BYTE),
+        ("byNumOfMultiPart", BYTE),
+        ("byRes", BYTE * 30)
+    ]
+
+
+class NET_DVR_XML_CONFIG_OUTPUT(Structure):
+    """
+    透传接口输出参数结构体。
+    """
+    _fields_ = [
+        ("dwSize", DWORD),
+        ("lpOutBuffer", c_void_p),
+        ("dwOutBufferSize", DWORD),
+        ("dwReturnedXMLSize", DWORD),
+        ("lpStatusBuffer", c_void_p),
+        ("dwStatusSize", DWORD),
+        ("byRes", BYTE * 32)
+    ]
+
+
+class  NET_DVR_STDXMLConfig(Structure):
+    """
+    ISAPI协议命令透传。
+    """
+    _fields_ = [
+        ("lUserID", DWORD),
+        ("lpInputParam", POINTER(NET_DVR_XML_CONFIG_INPUT)),
+        ("lpOutputParam", POINTER(NET_DVR_XML_CONFIG_OUTPUT))
+    ]
+

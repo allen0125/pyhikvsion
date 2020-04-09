@@ -112,6 +112,7 @@ class HKAdapter:
     def start_preview(self, cbFunc: g_standard_data_call_back, userId=0):
         req = preview.NET_DVR_PREVIEWINFO()
         req.hPlayWnd = None
+        req.byVideoCodingType = 1
         req.lChannel = 1  # 预览通道号
         req.dwStreamType = 0  # 码流类型：0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
         req.dwLinkMode = 0  # 连接方式：0-TCP方式，1-UDP方式，2-多播方式，3-RTP方式，4-RTP/RTSP，5-RTP/HTTP,6-HRUDP（可靠传输）

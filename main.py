@@ -42,30 +42,28 @@ if userId < 0:
 
 print("Login successful,the userId is ", userId)
 
-get_config = adapter.get_dvr_config(userId)
-print("获取配置文件  ", get_config)
-set_dvr_config = adapter.set_dvr_config(userId)
-print("设置设备信息结果为 ", set_dvr_config)
+# get_config = adapter.get_dvr_config(userId)
+# print("获取配置文件  ", get_config)
+# set_dvr_config = adapter.set_dvr_config(userId)
+# print("设置设备信息结果为 ", set_dvr_config)
 
-data = adapter.setup_alarm_chan_v31(cb.face_alarm_call_back, None)
-print("设置回调函数结果", data)
-# 布防
-alarm_result = adapter.setup_alarm_chan_v41(userId)
-print("设置人脸v41布防结果", alarm_result)
+# data = adapter.setup_alarm_chan_v31(cb.face_alarm_call_back, None)
+# print("设置回调函数结果", data)
+# # 布防
+# alarm_result = adapter.setup_alarm_chan_v41(userId)
+# print("设置人脸v41布防结果", alarm_result)
 
+lRealPlayHandle = adapter.start_preview(None, userId)
+if lRealPlayHandle < 0:
+    os._exit(2)
+print("Start preview successful,the lRealPlayHandle is ", lRealPlayHandle)
 
+callback = adapter.callback_real_data(lRealPlayHandle, cb.g_standard_data_call_back, userId)
+print('callback_real_data result is ', callback)
 
-# lRealPlayHandle = adapter.start_preview(None, userId)
-# if lRealPlayHandle < 0:
-#     os._exit(2)
-# print("Start preview successful,the lRealPlayHandle is ", lRealPlayHandle)
-
-# callback = adapter.callback_real_data(lRealPlayHandle, cb.g_standard_data_call_back, userId)
-# print('callback_real_data result is ', callback)
-
-# # callback_standard = adapter.callback_standard_data(
-# #     lRealPlayHandle, cb.g_standard_data_call_back, userId)
-# # print('callback_standard_data result is', callback_standard)
+# callback_standard = adapter.callback_standard_data(
+#     lRealPlayHandle, cb.g_standard_data_call_back, userId)
+# print('callback_standard_data result is', callback_standard)
 
 time.sleep(200)
 
